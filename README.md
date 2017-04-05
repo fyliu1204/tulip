@@ -1,2 +1,3 @@
-# code for the Temporal Logic Planning Toolbox
+# Algorithm 1 in original_bisimulation.py
+# Still working on the final step
 
