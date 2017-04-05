@@ -3,7 +3,9 @@ import polytope as pc
 
 def bisimulation(sys):
 
-    # @param sys: transition system object
+    """
+    input type?? transys.FTS() in discrete.py??
+    """
 
     """
     Assume part as coarsest possible proposition preserving partition
@@ -12,6 +14,23 @@ def bisimulation(sys):
     pre: exists in labeled_graphs, rtype: set()
     region: list of polytopes
     """
+    """
+    def prop2part(state_space, cont_props_dict):
+    Main function that takes a domain (state_space) and a list of
+    propositions (cont_props), and returns a proposition preserving
+    partition of the state space.
+    See Also
+    ========
+    L{PropPreservingPartition},
+    C{polytope.Polytope}
+    @param state_space: problem domain
+    @type state_space: C{polytope.Polytope}
+    @param cont_props_dict: propositions
+    @type cont_props_dict: dict of C{polytope.Polytope}
+    @return: state space quotient partition induced by propositions
+    @rtype: L{PropPreservingPartition}
+    """
+    part = prop2part(sys.states, sys.atomic_propositions)
     n = len(part)
     transitions = np.zeros([n, n], dtype = int)
 
@@ -29,6 +48,9 @@ def bisimulation(sys):
         del S[i] # S/si
         S = S.append(isect)
         S = S.append(diff)
+        """
+        any update after appending states?
+        """
         data = checkCondition(S)
 
 
@@ -41,8 +63,10 @@ def checkCondition(S):
         si = S[i] # type: region
         for j in range(0, n):
             sj = S[j] # type: region
-            # can i equal to j?
-            pred = pre(j) # set of numbers
+            '''
+            can i equal to j?
+            '''
+            pred = pre(j) # set of numbers, region in S
             """
             not sure if this union and diff is correct:
             intersect: line 603 in polytope.py, rtype: region
