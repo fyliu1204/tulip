@@ -24,30 +24,17 @@ def coarsest_possible_ppp(fts):
         c_list.append(d1[key])
     return c_list
 '''
-Function: Original Bisimulation Algorithm
-It's the implementation of Algorithm 1 in
-http://web.eecs.umich.edu/~necmiye/pubs/WagenmakerO_allerton16.pdf
-Input:  A finite transition system
+Function: List of states transfer to a fts
+Input:  A list. Each entry of the list is a subset of states set S. Elements in
+        the same entry have the same atomic proposition. Elements in different 
+        entries have different atomic propositions.
+        A finite transition system
 Output: Another finite transition system. It is the bisimulation system of the
         original finite transition system
+Comment: We ignored the environment actions and system actions
 '''
-def bisimulation_algorithm(fts):
-    c_list = coarsest_possible_ppp(fts)
-    flag = True
-    while flag:
-        flag = False
-        for si in c_list:
-            if flag == True:
-                break
-            for sj in c_list:
-                pre_sj = list(fts.states.pre(si))
-                tmp = [val for val in si if val in pre_sj]
-                if len(tmp) != 0 and tmp != si:
-                    flag = True
-                    c_list.remove(si)
-                    c_list.append(tmp)
-                    c_list.append(list(set(si).difference(set(pre_sj))))
-                    break
+def list_to_fts(c_list, fts):
+    print c_list
     new_fts = trs.FTS()
     new_fts.name = fts.name
     for state in c_list:
@@ -93,46 +80,97 @@ def bisimulation_algorithm(fts):
                 break
         if flag:
             continue
+        sys_act = ''
+        env_act = ''
+        if 'sys_actions' in tran[2]:
+            sys_act = tran[2]['sys_actions']
+        if 'env_actions' in tran[2]:
+            env_act = tran[2]['env_actions']
         new_fts.transitions.add(
-            s1, s2, 
-            sys_actions = tran[2]['sys_actions'],
-            env_actions = tran[2]['env_actions']
+            s1, s2
         )
     print new_fts
+    return new_fts
+'''
+Function: Original Bisimulation Algorithm
+It's the implementation of Algorithm 1 in
+http://web.eecs.umich.edu/~necmiye/pubs/WagenmakerO_allerton16.pdf
+Input:  A finite transition system
+Output: Another finite transition system. It is the bisimulation system of the
+        original finite transition system
+'''
+def bisimulation_algorithm(fts):
+    c_list = coarsest_possible_ppp(fts)
+    flag = True
+    while flag:
+        flag = False
+        for si in c_list:
+            if flag == True:
+                break
+            for sj in c_list:
+                pre_sj = list(fts.states.pre(si))
+                tmp = [val for val in si if val in pre_sj]
+                if len(tmp) != 0 and tmp != si:
+                    flag = True
+                    c_list.remove(si)
+                    c_list.append(tmp)
+                    c_list.append(list(set(si).difference(set(pre_sj))))
+                    break
+    new_fts = list_to_fts(c_list, fts)
+    return new_fts
+
+def dual_simulation_algorithm(fts):
+    c_list = coarsest_possible_ppp(fts)
+    flag = True
+    while flag:
+        flag = False
+        for si in c_list:
+            if flag == True:
+                break
+            for sj in c_list:
+                pre_sj = list(fts.states.pre(si))
+                tmp = [val for val in si if val in pre_sj]
+                if len(tmp) != 0 and tmp not in c_list:
+                    flag = True
+                    c_list.append(tmp)
+                    break
+    new_fts = list_to_fts(c_list, fts)
     return new_fts
 
 ofts = trs.FiniteTransitionSystem()
 
-ofts.states.add_from(['s1', 's2', 's3'] )
+ofts.states.add_from(['s1', 's2', 's3', 's4'] )
 ofts.states.initial.add('s1')
 
-ofts.atomic_propositions |= ['p','p1']
+ofts.atomic_propositions |= ['p1','p2']
 apset = set()
 apset.add('p1')
-apset.add('p')
+apset.add('p2')
 ofts.states['s1']['ap'] = apset
-ofts.states.add('s2', ap=set() )
-ofts.states.add('s3', ap={'p','p1'})
+ofts.states.add('s2', ap={'p1'} )
+ofts.states.add('s3', ap={'p2'})
+ofts.states.add('s4', ap={'p1', 'p2'})
 
-ofts.transitions.add('s1', 's2') # unlabeled
+ofts.transitions.add('s1', 's4') # unlabeled
 
 ofts.sys_actions.add('try')
 ofts.sys_actions.add_from({'start', 'stop'} )
 ofts.env_actions.add_from({'block', 'wait'} )
 
 # remove unlabeled edge s1->s2
-ofts.transitions.remove('s1', 's2')
+#ofts.transitions.remove('s1', 's2')
 
 ofts.transitions.add(
-    's1', 's2',
+    's2', 's1',
     sys_actions='try', env_actions='block'
 )
 ofts.transitions.add(
-    's2', 's3',
+    's3', 's2',
     sys_actions='start', env_actions='wait'
 )
 ofts.transitions.add(
-    's3', 's2',
+    's4', 's3',
     sys_actions='stop', env_actions='block'
 )
-fts = bisimulation_algorithm(ofts)
+print ofts
+fts = dual_simulation_algorithm(ofts)
