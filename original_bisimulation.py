@@ -1,3 +1,7 @@
+'''
+这是我为Python for The Temporal Logic Planning (TuLiP) toolbox加入的几个函数和几个简单的testcase。
+在编写函数中，大量使用了之前已有的api和数据结构， 并将新函数很好的嵌入到该toolbox中。
+'''
 from scipy.sparse import lil_matrix
 from numpy.random import rand
 import networkx as nx
